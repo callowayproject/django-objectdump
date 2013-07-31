@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-objectdump
+Export one or more objects and their related objects. Allows for fine-tuned
+control over which related objects are exported.
 """
 __version_info__ = {
     'major': 0,
