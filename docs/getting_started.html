@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; django-objectdump 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-objectdump 0.1 documentation" href="index.html" />
+    <link rel="next" title="Reference" href="reference/index.html" />
+    <link rel="prev" title="django-objectdump v 0.1" href="index.html" /> 
+  </head>
+  <body>
+<div id="docstitle">
+	<p>django-objectdump 0.1 documentation</p>
+</div>
+<div id="header">
+	<div id="title"><h1>Getting Started</h1></div>
+	<ul id="headerButtons">
+		<li id="toc_button"><div class="headerButton"><a href="#">Table of Contents</a></div></li>
+		<li id="page_buttons">
+			<div class="headerButton"><a href="genindex.html" title="General Index" accesskey="I">index</a></div>
+			<div class="headerButton"><a href="reference/index.html" title="Reference" accesskey="N">next</a></div>
+			<div class="headerButton"><a href="index.html" title="django-objectdump v 0.1" accesskey="P">previous</a></div>
+		</li>
+	</ul>
+</div>
+
+<div id="sphinxsidebar">
+  <div class="sphinxsidebarwrapper">
+	<ul><li class="toctree-l1"><a href="index.html">Main Page</a></li></ul>
+	<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">Reference</a></li>
+</ul>
+
+    <div id="searchbox" style="display: none">
+      
+        <form class="search" action="search.html" method="get">
+			<div class="search-wrapper">
+			<span class="search-left"></span>
+			<input class="prettysearch" type="text" name="q" size="18" />
+			<span class="search-right">&nbsp;</span>
+			</div>
+          <input type="submit" value="Search" class="searchbutton" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        <p class="searchtip" style="font-size: 90%">
+        Enter search terms or a module, class or function name.
+        </p>
+    </div>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+</div>
+
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Installation is easy using <tt class="docutils literal"><span class="pre">pip</span></tt>.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>pip install django-objectdump
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add to <tt class="docutils literal"><span class="pre">INSTALLED_APPS</span></tt></p>
+</li>
+<li><p class="first">Optionally add configuration information (<tt class="docutils literal"><span class="pre">OBJECTDUMP_SETTINGS</span></tt>)</p>
+</li>
+</ol>
+</div>
+<div class="section" id="settings">
+<h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">OBJECTDUMP_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;MODEL_SETTINGS&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;app.model&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;ignore&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s">&#39;fk_fields&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># or False, or [&#39;whitelist&#39;, &#39;of&#39;, &#39;fks&#39;]</span>
+            <span class="s">&#39;m2m_fields&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># or False, or [&#39;whitelist&#39;, &#39;of&#39;, &#39;m2m fields&#39;]</span>
+            <span class="s">&#39;addl_relations&#39;</span><span class="p">:</span> <span class="p">[]</span>  <span class="c"># callable or &#39;othermodel_set.all&#39; strings</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">ignore</span></tt></dt>
+<dd>If <tt class="docutils literal"><span class="pre">True</span></tt>, always ignore this model. Acts as if you used <tt class="docutils literal"><span class="pre">--exclude</span></tt> with this model.</dd>
+<dt><tt class="docutils literal"><span class="pre">fk_fields</span></tt></dt>
+<dd>If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through foreign keys. Otherwise, a white-list of foreign keys to include related objects.</dd>
+<dt><tt class="docutils literal"><span class="pre">m2m_keys</span></tt></dt>
+<dd>If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through many-to-many fields. Otherwise, a white-list of many-to-many field names to include related objects.</dd>
+<dt><tt class="docutils literal"><span class="pre">addl_relations</span></tt></dt>
+<dd>A list of callables, which get passed an object, or strings in Django template syntax (<tt class="docutils literal"><span class="pre">'author_set.all.0'</span></tt> becomes <tt class="docutils literal"><span class="pre">'object.author_set.all.0'</span></tt> and evaluates to <tt class="docutils literal"><span class="pre">object.author_set.all()[0]</span></tt>)</dd>
+</dl>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">--format</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">json</span></tt></p>
+<p class="last">Specifies the output serialization format for fixtures. Options depend on <tt class="docutils literal"><span class="pre">SERIALIZATION_MODULES</span></tt> settings. <tt class="docutils literal"><span class="pre">xml</span></tt> and <tt class="docutils literal"><span class="pre">json</span></tt> and <tt class="docutils literal"><span class="pre">yaml</span></tt> are built-in.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--indent</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<p class="last">Specifies the indent level to use. The default will not do any pretty-printing or indenting of content.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--database</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">DEFAULT_DB_ALIAS</span></tt></p>
+<p class="last">Nominates a specific database to dump fixtures from. Defaults to the &#8220;default&#8221; database.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">-e</span></tt>, <tt class="docutils literal"><span class="pre">--exclude</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">[]</span></tt></p>
+<p class="last">An appname or appname.ModelName to exclude (use multiple <tt class="docutils literal"><span class="pre">--exclude</span></tt> to exclude multiple apps/models).</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">-n</span></tt>, <tt class="docutils literal"><span class="pre">--natural</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">False</span></tt></p>
+<p class="last">Use natural keys if they are available.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--depth</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<p class="last">Max depth related objects to get. The initial object specified is considered level 0. The default will get all objects.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--limit</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">None</span></tt></p>
+<p class="last">Max number of related objects to get. Default gets all related objects.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">-i</span></tt>, <tt class="docutils literal"><span class="pre">--include</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> all</p>
+<p class="last">An appname or appname.ModelName to whitelist related objects included in the export (use multiple <tt class="docutils literal"><span class="pre">--include</span></tt> to include multiple apps/models).</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--idtype</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">'int'</span></tt></p>
+<p class="last">The natural type of the id(s) specified. Options are: <tt class="docutils literal"><span class="pre">int</span></tt>, <tt class="docutils literal"><span class="pre">unicode</span></tt>, <tt class="docutils literal"><span class="pre">long</span></tt></p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">--debug</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">False</span></tt></p>
+<p class="last">Output debug information. Shows what related objects each object generates. Use with <tt class="docutils literal"><span class="pre">--verbosity</span> <span class="pre">2</span></tt> to also see which fields are the link.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div> 
+        </div>
+      </div>
+    <div class="footer">
+    <p>
+      &copy; Copyright 2013, Corey Oordt.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
+	</p>
+    </div>
+      <div class="clearer"></div>
+    </div>
+	<div id="breadcrumbs">
+		Getting Started
+		</ul>
+	</div>
+	<script type="text/javascript" charset="utf-8" src="_static/toc.js"></script>
+  </body>
+</html>
