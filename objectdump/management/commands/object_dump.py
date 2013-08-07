@@ -4,13 +4,27 @@ from django.db import DEFAULT_DB_ALIAS
 
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
-from django.core.serializers import serialize
 from django.db.models import ForeignKey, get_model
 from django.db import models
 from django.template import Variable
 
 from objectdump.models import get_key, get_related_fields, ObjectFilter
 from objectdump.settings import MODEL_SETTINGS
+from objectdump.serializer import get_serializer
+
+
+def get_fields():
+    """
+    Return two dicts: the configured "fields" and "exclude" for all models
+    """
+    fields = {}
+    excluded_fields = {}
+    for key, val in MODEL_SETTINGS.items():
+        if "fields" in MODEL_SETTINGS[key]:
+            fields[key] = MODEL_SETTINGS[key]["fields"]
+        if "exclude" in MODEL_SETTINGS[key]:
+            excluded_fields[key] = MODEL_SETTINGS[key]["exclude"]
+    return fields, excluded_fields
 
 
 class Command(BaseCommand):
@@ -247,16 +261,26 @@ class Command(BaseCommand):
         serialization_order = list(serialization_order)
         serialization_order.sort(cmp=cmp_depends)
         try:
-            # self.stdout.ending = None
+            try:
+                self.stdout.ending = None
+            except AttributeError:
+                pass
             if debug:
                 import pprint
+                print "\n\n"
                 pprint.pprint(dict(self.generates), stream=self.stdout)
+                print "\n\n"
+                pprint.pprint(serialization_order, stream=self.stdout)
                 return
-            serialize(format,
+            SerializerClass = get_serializer(format)()
+            fields, excluded = get_fields()
+            SerializerClass.serialize(
                       [o for o in serialization_order if o is not None],
                       indent=indent,
                       use_natural_keys=use_natural_keys,
-                      stream=self.stdout)
+                      stream=self.stdout,
+                      fields=fields,
+                      exclude_fields=excluded)
         except Exception as e:
             if show_traceback:
                 raise
