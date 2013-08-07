@@ -5,7 +5,7 @@ control over which related objects are exported.
 """
 __version_info__ = {
     'major': 0,
-    'minor': 1,
+    'minor': 2,
     'micro': 0,
     'releaselevel': 'final',
     'serial': 1
