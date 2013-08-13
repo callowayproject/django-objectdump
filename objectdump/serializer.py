@@ -26,11 +26,21 @@ class PerObjectSerializer(object):
         if key in included_fields:
             selected_fields = set(included_fields[key])
         else:
-            names = [x.attname for x in obj._meta.concrete_model._meta.local_fields]
+            names = [x.attname for x in
+                                obj._meta.concrete_model._meta.local_fields
+                                if x.rel is None]
+            names += [x.attname[:-3] for x in
+                                obj._meta.concrete_model._meta.local_fields
+                                if x.rel is not None]
             names += [x.attname for x in obj._meta.concrete_model._meta.many_to_many]
             selected_fields = set(names)
         if key in excluded_fields:
+            print "<!-- Excluding", excluded_fields[key], " -->"
             selected_fields -= set(excluded_fields[key])
+            for i in excluded_fields[key]:
+                print "<!--", i, "-->"
+                assert i not in selected_fields
+        print "<!-- ", type(obj), " fields: ", selected_fields, " -->"
         self.cached_selected_fields[key] = list(selected_fields)
         return self.cached_selected_fields[key]
 
