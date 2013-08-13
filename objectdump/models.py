@@ -3,27 +3,28 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models import get_app, get_model
 from .settings import MODEL_SETTINGS
 
-def get_key(obj, as_tuple=False):
-    key = (
-        obj._meta.app_label,
-        obj._meta.module_name,
-        obj.pk)
+
+def get_key(obj, as_tuple=False, include_pk=True):
+    key = [obj._meta.app_label, obj._meta.module_name, ]
+    if include_pk:
+        key.append(obj.pk)
+
     if as_tuple:
-        return key
-    return ':'.join(map(str, key))
+        return tuple(key)
+    return '.'.join(map(str, key))
 
 
-def get_related_fields(obj):
+def get_reverse_relations(obj):
     """
     Return all the related fields for an object
     """
     # These are the reverse relations. Typically show up as `<model_name>_set`
     related_objs = obj._meta.get_all_related_objects()
-    return [
-        rel.get_accessor_name() for rel in related_objs
-    ] + [
-        m2m_rel.name for m2m_rel in obj._meta.many_to_many
-    ]
+    return [rel.get_accessor_name() for rel in related_objs]
+
+
+def get_many_to_many(obj):
+    return [m2m_rel.name for m2m_rel in obj._meta.many_to_many]
 
 
 def get_apps_and_models(appmodel_list):
