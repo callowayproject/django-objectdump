@@ -316,22 +316,22 @@ class Command(BaseCommand):
             except AttributeError:
                 pass
             if debug:
-                print "\n\n"
+                print "\n----------------------------------------------"
                 print "Which models cause which others to be included"
-                print "\n\n"
+                print "----------------------------------------------"
                 pprint.pprint(dict(self.generates), stream=self.stdout)
-                print "\n\n"
+                print "\n----------------------------------------------"
                 print "Dependencies"
-                print "\n\n"
+                print "----------------------------------------------"
                 for model, fields in self.relationships.items():
                     print model
                     for field, items in fields.items():
                         print "     %s" % field
                         for item in items:
                             print "         %s" % item
-                print "\n\n"
+                print "\n----------------------------------------------"
                 print "Serialization order"
-                print "\n\n"
+                print "----------------------------------------------"
                 pprint.pprint(list(serialization_order), stream=self.stdout)
                 return
             if model_diagram_file:

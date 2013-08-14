@@ -19,6 +19,13 @@ Installation
 Settings
 ========
 
+Object Dump's settings currently consist of one item: ``MODEL_SETTINGS``\ . ``MODEL_SETTINGS`` is a ``dict`` with the keys as ``'app.model'`` strings and the values a dict with one or more key-value pairs.
+
+If ``'app.model'`` key is not in ``MODEL_SETTINGS``\ , object dump uses the defaults.
+
+If one of the fields is not in the ``'app.model'``\ s ``dict``\ , object dump uses the default for that field.
+
+
 .. code-block:: python
 
    OBJECTDUMP_SETTINGS = {
@@ -27,23 +34,39 @@ Settings
                'ignore': False,
                'fk_fields': True,  # or False, or ['whitelist', 'of', 'fks']
                'm2m_fields': True,  # or False, or ['whitelist', 'of', 'm2m fields']
-               'addl_relations': []  # callable or 'othermodel_set.all' strings
+               'addl_relations': [],  # callable, or 'othermodel_set.all' strings
+               'reverse_relations': True,  # or False, or ['whitelist', 'of', 'reverse_relations']
            }
        }
    }
 
 
+MODEL_SETTINGS value fields
+---------------------------
+
 ``ignore``
+    **Default:** ``False``
+
     If ``True``\ , always ignore this model. Acts as if you used ``--exclude`` with this model.
 
 ``fk_fields``
+    **Default:** ``True``
+
     If ``False``\ , do not include related objects through foreign keys. Otherwise, a white-list of foreign keys to include related objects.
 
 ``m2m_keys``
+    **Default:** ``True``
+
     If ``False``\ , do not include related objects through many-to-many fields. Otherwise, a white-list of many-to-many field names to include related objects.
+
+``reverse_relations``
+    **Default:** ``True``
+
+    If ``False``\ , do not include additional objects using the reverse relations from this model. Reverse relations are usually accessed by "othermodel_set".
 
 ``addl_relations``
     A list of callables, which get passed an object, or strings in Django template syntax (``'author_set.all.0'`` becomes ``'object.author_set.all.0'`` and evaluates to ``object.author_set.all()[0]``\ )
+
 
 Options
 =======

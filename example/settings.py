@@ -163,3 +163,9 @@ LOGGING = {
         },
     }
 }
+
+# OBJECTDUMP_SETTINGS = {
+#     'MODEL_SETTINGS': {
+#         'simpleapp.author': {'reverse_relations': False},
+#     }
+# }

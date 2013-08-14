@@ -23,4 +23,5 @@ Contents
    :glob:
 
    getting_started
+   tutorial
    reference/index

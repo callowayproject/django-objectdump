@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Getting Started &mdash; django-objectdump 0.1 documentation</title>
+    <title>Getting Started &mdash; django-objectdump 0.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1',
+        VERSION:     '0.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,13 +23,13 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="django-objectdump 0.1 documentation" href="index.html" />
-    <link rel="next" title="Reference" href="reference/index.html" />
-    <link rel="prev" title="django-objectdump v 0.1" href="index.html" /> 
+    <link rel="top" title="django-objectdump 0.3 documentation" href="index.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="django-objectdump v 0.3" href="index.html" /> 
   </head>
   <body>
 <div id="docstitle">
-	<p>django-objectdump 0.1 documentation</p>
+	<p>django-objectdump 0.3 documentation</p>
 </div>
 <div id="header">
 	<div id="title"><h1>Getting Started</h1></div>
@@ -37,8 +37,8 @@
 		<li id="toc_button"><div class="headerButton"><a href="#">Table of Contents</a></div></li>
 		<li id="page_buttons">
 			<div class="headerButton"><a href="genindex.html" title="General Index" accesskey="I">index</a></div>
-			<div class="headerButton"><a href="reference/index.html" title="Reference" accesskey="N">next</a></div>
-			<div class="headerButton"><a href="index.html" title="django-objectdump v 0.1" accesskey="P">previous</a></div>
+			<div class="headerButton"><a href="tutorial.html" title="Tutorial" accesskey="N">next</a></div>
+			<div class="headerButton"><a href="index.html" title="django-objectdump v 0.3" accesskey="P">previous</a></div>
 		</li>
 	</ul>
 </div>
@@ -53,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#options">Options</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/index.html">Reference</a></li>
 </ul>
 
@@ -101,28 +102,45 @@
 </div>
 <div class="section" id="settings">
 <h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>Object Dump&#8217;s settings currently consist of one item: <tt class="docutils literal"><span class="pre">MODEL_SETTINGS</span></tt>. <tt class="docutils literal"><span class="pre">MODEL_SETTINGS</span></tt> is a <tt class="docutils literal"><span class="pre">dict</span></tt> with the keys as <tt class="docutils literal"><span class="pre">'app.model'</span></tt> strings and the values a dict with one or more key-value pairs.</p>
+<p>If <tt class="docutils literal"><span class="pre">'app.model'</span></tt> key is not in <tt class="docutils literal"><span class="pre">MODEL_SETTINGS</span></tt>, object dump uses the defaults.</p>
+<p>If one of the fields is not in the <tt class="docutils literal"><span class="pre">'app.model'</span></tt>s <tt class="docutils literal"><span class="pre">dict</span></tt>, object dump uses the default for that field.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">OBJECTDUMP_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;MODEL_SETTINGS&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s">&#39;app.model&#39;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s">&#39;ignore&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
             <span class="s">&#39;fk_fields&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># or False, or [&#39;whitelist&#39;, &#39;of&#39;, &#39;fks&#39;]</span>
             <span class="s">&#39;m2m_fields&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># or False, or [&#39;whitelist&#39;, &#39;of&#39;, &#39;m2m fields&#39;]</span>
-            <span class="s">&#39;addl_relations&#39;</span><span class="p">:</span> <span class="p">[]</span>  <span class="c"># callable or &#39;othermodel_set.all&#39; strings</span>
+            <span class="s">&#39;addl_relations&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c"># callable, or &#39;othermodel_set.all&#39; strings</span>
+            <span class="s">&#39;reverse_relations&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>  <span class="c"># or False, or [&#39;whitelist&#39;, &#39;of&#39;, &#39;reverse_relations&#39;]</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+<div class="section" id="model-settings-value-fields">
+<h3>MODEL_SETTINGS value fields<a class="headerlink" href="#model-settings-value-fields" title="Permalink to this headline">¶</a></h3>
 <dl class="docutils">
 <dt><tt class="docutils literal"><span class="pre">ignore</span></tt></dt>
-<dd>If <tt class="docutils literal"><span class="pre">True</span></tt>, always ignore this model. Acts as if you used <tt class="docutils literal"><span class="pre">--exclude</span></tt> with this model.</dd>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">False</span></tt></p>
+<p class="last">If <tt class="docutils literal"><span class="pre">True</span></tt>, always ignore this model. Acts as if you used <tt class="docutils literal"><span class="pre">--exclude</span></tt> with this model.</p>
+</dd>
 <dt><tt class="docutils literal"><span class="pre">fk_fields</span></tt></dt>
-<dd>If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through foreign keys. Otherwise, a white-list of foreign keys to include related objects.</dd>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">True</span></tt></p>
+<p class="last">If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through foreign keys. Otherwise, a white-list of foreign keys to include related objects.</p>
+</dd>
 <dt><tt class="docutils literal"><span class="pre">m2m_keys</span></tt></dt>
-<dd>If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through many-to-many fields. Otherwise, a white-list of many-to-many field names to include related objects.</dd>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">True</span></tt></p>
+<p class="last">If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include related objects through many-to-many fields. Otherwise, a white-list of many-to-many field names to include related objects.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">reverse_relations</span></tt></dt>
+<dd><p class="first"><strong>Default:</strong> <tt class="docutils literal"><span class="pre">True</span></tt></p>
+<p class="last">If <tt class="docutils literal"><span class="pre">False</span></tt>, do not include additional objects using the reverse relations from this model. Reverse relations are usually accessed by &#8220;othermodel_set&#8221;.</p>
+</dd>
 <dt><tt class="docutils literal"><span class="pre">addl_relations</span></tt></dt>
 <dd>A list of callables, which get passed an object, or strings in Django template syntax (<tt class="docutils literal"><span class="pre">'author_set.all.0'</span></tt> becomes <tt class="docutils literal"><span class="pre">'object.author_set.all.0'</span></tt> and evaluates to <tt class="docutils literal"><span class="pre">object.author_set.all()[0]</span></tt>)</dd>
 </dl>
+</div>
 </div>
 <div class="section" id="options">
 <h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>

@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial &mdash; django-objectdump 0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-objectdump 0.3 documentation" href="index.html" />
+    <link rel="next" title="Reference" href="reference/index.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+  </head>
+  <body>
+<div id="docstitle">
+	<p>django-objectdump 0.3 documentation</p>
+</div>
+<div id="header">
+	<div id="title"><h1>Tutorial</h1></div>
+	<ul id="headerButtons">
+		<li id="toc_button"><div class="headerButton"><a href="#">Table of Contents</a></div></li>
+		<li id="page_buttons">
+			<div class="headerButton"><a href="genindex.html" title="General Index" accesskey="I">index</a></div>
+			<div class="headerButton"><a href="reference/index.html" title="Reference" accesskey="N">next</a></div>
+			<div class="headerButton"><a href="getting_started.html" title="Getting Started" accesskey="P">previous</a></div>
+		</li>
+	</ul>
+</div>
+
+<div id="sphinxsidebar">
+  <div class="sphinxsidebarwrapper">
+	<ul><li class="toctree-l1"><a href="index.html">Main Page</a></li></ul>
+	<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#excluding-relations">Excluding Relations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#including-relations">Including Relations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">Reference</a></li>
+</ul>
+
+    <div id="searchbox" style="display: none">
+      
+        <form class="search" action="search.html" method="get">
+			<div class="search-wrapper">
+			<span class="search-left"></span>
+			<input class="prettysearch" type="text" name="q" size="18" />
+			<span class="search-right">&nbsp;</span>
+			</div>
+          <input type="submit" value="Search" class="searchbutton" />
+          <input type="hidden" name="check_keywords" value="yes" />
+          <input type="hidden" name="area" value="default" />
+        </form>
+        <p class="searchtip" style="font-size: 90%">
+        Enter search terms or a module, class or function name.
+        </p>
+    </div>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+</div>
+
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>The goal is to export an object and all related objects. This export might be used as test fixtures, sample data, or for transferring to a duplicate system.</p>
+<p>We start out exporting a tagged article, and we&#8217;ll use the debug and verbose mode to see what will get included:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>./manage.py object_dump simpleapp.taggedarticle 1 --debug -v2
+</pre></div>
+</div>
+<div class="highlight-python"><pre>simpleapp.taggedarticle.1.categories -&gt; simpleapp.category.1
+simpleapp.taggedarticle.1.author -&gt; simpleapp.author.1
+simpleapp.author.1.taggedarticle_set -&gt; simpleapp.taggedarticle.1
+simpleapp.author.1.taggedarticle_set -&gt; simpleapp.taggedarticle.4
+simpleapp.author.1.authorprofile -&gt; simpleapp.authorprofile.1
+simpleapp.taggedarticle.4.categories -&gt; simpleapp.category.2
+simpleapp.taggedarticle.4.categories -&gt; simpleapp.category.1
+simpleapp.taggedarticle.4.author -&gt; simpleapp.author.1
+simpleapp.authorprofile.1.author -&gt; simpleapp.author.1
+
+----------------------------------------------
+Which models cause which others to be included
+----------------------------------------------
+{'simpleapp.author.1': set(['simpleapp.authorprofile.1',
+                            'simpleapp.taggedarticle.1',
+                            'simpleapp.taggedarticle.4']),
+ 'simpleapp.authorprofile.1': set(['simpleapp.author.1']),
+ 'simpleapp.taggedarticle.1': set(['simpleapp.author.1',
+                                   'simpleapp.category.1']),
+ 'simpleapp.taggedarticle.4': set(['simpleapp.author.1',
+                                   'simpleapp.category.1',
+                                   'simpleapp.category.2'])}
+
+----------------------------------------------
+Dependencies
+----------------------------------------------
+simpleapp.taggedarticle.4
+     categories
+         simpleapp.category.1
+         simpleapp.category.2
+     author
+         simpleapp.author.1
+simpleapp.taggedarticle.1
+     categories
+         simpleapp.category.1
+     author
+         simpleapp.author.1
+simpleapp.authorprofile.1
+     author
+         simpleapp.author.1
+
+----------------------------------------------
+Serialization order
+----------------------------------------------
+[&lt;Author: Obi Wan&gt;,
+ &lt;Category: Nation&gt;,
+ &lt;Category: World&gt;,
+ &lt;TaggedArticle: Stars at war&gt;,
+ &lt;TaggedArticle: The Empire returns fire&gt;,
+ &lt;AuthorProfile: Profile of Obi Wan&gt;]</pre>
+</div>
+<p>This shows that the original object&#8217;s categories many-to-many field added one category object and the author foreign key added an author object.</p>
+<p>The author object is related to two articles: the one we want, and another one. This additional article is now added. The author&#8217;s profile is also added.</p>
+<p>The additional article added another category to the list of objects.</p>
+<p>So far we have an extra article, an extra category, and no tags. We will have to configure Object Dump to modify how it follows relations.</p>
+<div class="section" id="excluding-relations">
+<h2>Excluding Relations<a class="headerlink" href="#excluding-relations" title="Permalink to this headline">¶</a></h2>
+<p>The cause of one of our issues is the Author model. It has a foreign key named <tt class="docutils literal"><span class="pre">authorprofile</span></tt>, and a reverse relation attribute named <tt class="docutils literal"><span class="pre">taggedarticle_set</span></tt>. <tt class="docutils literal"><span class="pre">Author.taggedarticle_set</span></tt> brings in another article by the same author, which in turn brings in an additional category.</p>
+<p>We need to prevent object_dump from following that reverse relation. We can do this easily through the configuration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">OBJECTDUMP_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;MODEL_SETTINGS&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;simpleapp.author&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;reverse_relations&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">reverse_relations</span></tt> can be either <tt class="docutils literal"><span class="pre">False</span></tt> to exclude all reverse relations, or a white-list of relations to follow.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>./manage.py object_dump simpleapp.taggedarticle 1 --debug -v2
+</pre></div>
+</div>
+<div class="highlight-python"><pre>simpleapp.taggedarticle.1.categories -&gt; simpleapp.category.1
+simpleapp.taggedarticle.1.author -&gt; simpleapp.author.1
+
+----------------------------------------------
+Which models cause which others to be included
+----------------------------------------------
+{'simpleapp.taggedarticle.1': set(['simpleapp.author.1',
+                                   'simpleapp.category.1'])}
+
+----------------------------------------------
+Dependencies
+----------------------------------------------
+simpleapp.taggedarticle.1
+     categories
+         simpleapp.category.1
+     author
+         simpleapp.author.1
+
+----------------------------------------------
+Serialization order
+----------------------------------------------
+[&lt;Category: World&gt;, &lt;Author: Obi Wan&gt;, &lt;TaggedArticle: Stars at war&gt;]</pre>
+</div>
+</div>
+<div class="section" id="including-relations">
+<h2>Including Relations<a class="headerlink" href="#including-relations" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div> 
+        </div>
+      </div>
+    <div class="footer">
+    <p>
+      &copy; Copyright 2013, Corey Oordt.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b1.
+	</p>
+    </div>
+      <div class="clearer"></div>
+    </div>
+	<div id="breadcrumbs">
+		Tutorial
+		</ul>
+	</div>
+	<script type="text/javascript" charset="utf-8" src="_static/toc.js"></script>
+  </body>
+</html>
