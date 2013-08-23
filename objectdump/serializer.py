@@ -20,27 +20,37 @@ class PerObjectSerializer(object):
         key = "%s.%s" % (obj._meta.app_label, obj._meta.module_name)
         if key in self.cached_selected_fields:
             return self.cached_selected_fields[key]
-        if key not in included_fields and key not in excluded_fields:
+        if key not in included_fields and key not in excluded_fields and not self.use_gfks:
             self.cached_selected_fields[key] = None
             return None
         if key in included_fields:
             selected_fields = set(included_fields[key])
         else:
+            concrete_obj = obj._meta.concrete_model
             names = [x.attname for x in
-                                obj._meta.concrete_model._meta.local_fields
+                                concrete_obj._meta.local_fields
                                 if x.rel is None]
             names += [x.attname[:-3] for x in
-                                obj._meta.concrete_model._meta.local_fields
+                                concrete_obj._meta.local_fields
                                 if x.rel is not None]
-            names += [x.attname for x in obj._meta.concrete_model._meta.many_to_many]
+            names += [x.attname for x in concrete_obj._meta.many_to_many]
             selected_fields = set(names)
+        if self.use_gfks:
+            gfks = concrete_obj._meta.virtual_fields
+            for gfk in gfks:
+                try:
+                    selected_fields.remove(gfk.fk_field)
+                    selected_fields.remove(gfk.ct_field)
+                except ValueError:
+                    pass
+                selected_fields.add(gfk.name)
         if key in excluded_fields:
-            print "<!-- Excluding", excluded_fields[key], " -->"
+            # print "<!-- Excluding", excluded_fields[key], " -->"
             selected_fields -= set(excluded_fields[key])
             for i in excluded_fields[key]:
-                print "<!--", i, "-->"
+                # print "<!--", i, "-->"
                 assert i not in selected_fields
-        print "<!-- ", type(obj), " fields: ", selected_fields, " -->"
+        # print "<!-- ", type(obj), " fields: ", selected_fields, " -->"
         self.cached_selected_fields[key] = list(selected_fields)
         return self.cached_selected_fields[key]
 
@@ -56,6 +66,7 @@ class PerObjectSerializer(object):
         self.options = options
         self.stream = options.pop("stream", six.StringIO())
         self.use_natural_keys = options.pop("use_natural_keys", False)
+        self.use_gfks = hasattr(self, 'handle_gfk_field') and self.use_natural_keys
 
         included_fields = options.pop("fields", {})
         excluded_fields = options.pop("exclude_fields", {})
@@ -81,6 +92,10 @@ class PerObjectSerializer(object):
                 if field.serialize:
                     if self.selected_fields is None or field.attname in self.selected_fields:
                         self.handle_m2m_field(obj, field)
+            if self.use_gfks:
+                for field in concrete_model._meta.virtual_fields:
+                    if self.selected_fields is None or field.name in self.selected_fields:
+                            self.handle_gfk_field(obj, field)
             self.end_object(obj)
             if self.first:
                 self.first = False

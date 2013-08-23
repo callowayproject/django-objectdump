@@ -115,8 +115,8 @@ class Command(BaseCommand):
                 rel_objs = [rel_objs]
             for rel_obj in rel_objs:
                 rel_key = get_key(rel_obj, include_pk=self.use_obj_key)
-                self.depends_on[obj].add(rel_obj)
-                self.relationships[obj_key][rel].add(rel_key)
+                # self.depends_on[rel_obj].add(obj)
+                # self.relationships[obj_key][rel].add(rel_key)
                 self.generates[obj_key].add(rel_key)
                 if self.verbose:
                     print "%s.%s ->" % (obj_key, rel), rel_key
@@ -150,7 +150,8 @@ class Command(BaseCommand):
                     rel_key = get_key(rel_obj, include_pk=self.use_obj_key)
                     self.generates[obj_key].add(rel_key)
                     if self.verbose:
-                        print "%s.%s ->" % (obj_key, rel), rel_key
+                        pprint.pprint("%s.%s -> %s" % (obj_key, rel, rel_key),
+                                      stream=self.stderr)
                     output.append(rel_obj)
             except (FieldError, ObjectDoesNotExist):
                 pass
@@ -181,7 +182,8 @@ class Command(BaseCommand):
                     self.relationships[obj_key][rel].add(rel_key)
                     self.generates[obj_key].add(rel_key)
                     if self.verbose:
-                        print "%s.%s ->" % (obj_key, rel), rel_key
+                        pprint.pprint("%s.%s -> %s" % (obj_key, rel, rel_key),
+                                      stream=self.stderr)
                     output.append(rel_obj)
             except (FieldError, ObjectDoesNotExist):
                 pass
@@ -206,8 +208,33 @@ class Command(BaseCommand):
                     self.relationships[obj_key][field.name].add(fk_key)
                     self.generates[obj_key].add(fk_key)
                     if self.verbose:
-                        print "%s.%s ->" % (obj_key, field.name), fk_key
+                        pprint.pprint("%s.%s -> %s" % (obj_key, field.name, fk_key),
+                                      stream=self.stderr)
                     output.append(fk_obj)
+        return output
+
+    def process_genericforeignkeys(self, obj, obj_filter=None):
+        output = []
+        obj_key = get_key(obj, include_pk=self.use_obj_key)
+        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        all_field_names = [x.name for x in obj._meta.virtual_fields]
+        gfk_fields = MODEL_SETTINGS.get(key, {}).get('gfk_fields', all_field_names)
+        if gfk_fields == True:
+            gfk_fields = all_field_names
+        elif gfk_fields == False:
+            gfk_fields = []
+        for field in obj._meta.virtual_fields:
+            if field.name in gfk_fields:
+                gfk_obj = obj.__getattribute__(field.name)
+                if gfk_obj and obj_filter is not None and not obj_filter.skip(gfk_obj):
+                    gfk_key = get_key(gfk_obj, include_pk=self.use_obj_key)
+                    self.depends_on[obj].add(gfk_obj)
+                    self.relationships[obj_key][field.name].add(gfk_key)
+                    self.generates[obj_key].add(gfk_key)
+                    if self.verbose:
+                        pprint.pprint("%s.%s -> %s" % (obj_key, field.name, gfk_key),
+                                      stream=self.stderr)
+                    output.append(gfk_obj)
         return output
 
     def process_object(self, obj, obj_filter=None):
@@ -261,6 +288,9 @@ class Command(BaseCommand):
             fk_objs = self.process_foreignkeys(obj, obj_filter)
             for fk_obj in fk_objs:
                 self.queue.append((fk_obj, depth + 1))
+            gfk_objs = self.process_genericforeignkeys(obj, obj_filter)
+            for gfk_obj in gfk_objs:
+                self.queue.append((gfk_obj, depth + 1))
 
     def handle(self, *args, **options):
         format = options.get('format')
@@ -276,6 +306,8 @@ class Command(BaseCommand):
         model_diagram_file = options.get("modeldiagram")
         object_diagram_file = options.get("objdiagram")
 
+        SerializerClass = get_serializer(format)()
+        self.use_gfks = hasattr(SerializerClass, 'handle_gfk_field')
         if model_diagram_file and object_diagram_file:
             raise CommandError("You can't generate a model diagram and an object diagram at the same time.")
         self.use_obj_key = model_diagram_file is None
@@ -316,22 +348,22 @@ class Command(BaseCommand):
             except AttributeError:
                 pass
             if debug:
-                print "\n----------------------------------------------"
-                print "Which models cause which others to be included"
-                print "----------------------------------------------"
+                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint("Which models cause which others to be included", stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 pprint.pprint(dict(self.generates), stream=self.stdout)
-                print "\n----------------------------------------------"
-                print "Dependencies"
-                print "----------------------------------------------"
+                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint("Dependencies", stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 for model, fields in self.relationships.items():
-                    print model
+                    pprint.pprint(model, stream=self.stderr)
                     for field, items in fields.items():
-                        print "     %s" % field
+                        pprint.pprint("     %s" % field, stream=self.stderr)
                         for item in items:
-                            print "         %s" % item
-                print "\n----------------------------------------------"
-                print "Serialization order"
-                print "----------------------------------------------"
+                            pprint.pprint("         %s" % item, stream=self.stderr)
+                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint("Serialization order", stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 pprint.pprint(list(serialization_order), stream=self.stdout)
                 return
             if model_diagram_file:
@@ -341,7 +373,6 @@ class Command(BaseCommand):
             to_serialize = [o for o in list(serialization_order) if o is not None]
             if self.verbose:
                 pprint.pprint(to_serialize, stream=self.stderr)
-            SerializerClass = get_serializer(format)()
             fields, excluded = get_fields()
             SerializerClass.serialize(
                       to_serialize,
