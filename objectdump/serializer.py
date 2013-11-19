@@ -33,7 +33,7 @@ class PerObjectSerializer(object):
             names += [x.attname[:-3] for x in
                                 concrete_obj._meta.local_fields
                                 if x.rel is not None]
-            names += [x.attname for x in concrete_obj._meta.many_to_many]
+            names += [getattr(x, 'attname') for x in concrete_obj._meta.many_to_many if hasattr(x, 'attname')]
             selected_fields = set(names)
         if self.use_gfks:
             gfks = concrete_obj._meta.virtual_fields
