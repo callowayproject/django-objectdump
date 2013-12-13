@@ -97,17 +97,20 @@ class Command(BaseCommand):
             default=None,
             type="str",
             help='Output a GraphViz (.dot) diagram of the object dependencies to the passed filepath.'),
-        )
+    )
 
     def process_additional_relations(self, obj, limit=None):
         key = ".".join([obj._meta.app_label, obj._meta.module_name])
         addl_relations = MODEL_SETTINGS.get(key, {}).get('addl_relations', [])
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
+        add_dependency = False
         for rel in addl_relations:
             if callable(rel):
                 rel_objs = rel(obj)
+                add_dependency = getattr(rel, 'depends_on_obj', False)
             else:
+                add_dependency = False
                 rel_objs = Variable("object.%s" % rel).resolve({'object': obj})
             if not rel_objs:
                 continue
@@ -115,11 +118,13 @@ class Command(BaseCommand):
                 rel_objs = [rel_objs]
             for rel_obj in rel_objs:
                 rel_key = get_key(rel_obj, include_pk=self.use_obj_key)
-                # self.depends_on[rel_obj].add(obj)
-                # self.relationships[obj_key][rel].add(rel_key)
+                if add_dependency:
+                    self.depends_on[rel_obj].add(obj)
+                    self.relationships[obj_key][rel.__name__].add(rel_key)
                 self.generates[obj_key].add(rel_key)
                 if self.verbose:
-                    print "%s.%s ->" % (obj_key, rel), rel_key
+                    pprint.pprint("%s.%s -> %s" % (obj_key, rel, rel_key),
+                        stream=self.stderr)
                 output.append(rel_obj)
         return output
 
@@ -129,9 +134,11 @@ class Command(BaseCommand):
         obj_key = get_key(obj, include_pk=self.use_obj_key)
         key = ".".join([obj._meta.app_label, obj._meta.module_name])
         m2m_fields = MODEL_SETTINGS.get(key, {}).get('reverse_relations', related_fields)
-        if m2m_fields == True:
+        # m2m_fields could be True for all, False for none, or an iterable for
+        # some of the m2m_fields
+        if m2m_fields is True:
             m2m_fields = related_fields
-        elif m2m_fields == False:
+        elif m2m_fields is False:
             m2m_fields = []
         for rel in m2m_fields:
             try:
@@ -163,9 +170,12 @@ class Command(BaseCommand):
         key = ".".join([obj._meta.app_label, obj._meta.module_name])
         related_fields = get_many_to_many(obj)
         m2m_fields = MODEL_SETTINGS.get(key, {}).get('m2m_fields', related_fields)
-        if m2m_fields == True:
+
+        # m2m_fields could be True for all, False for none, or an iterable for
+        # some of the m2m_fields
+        if m2m_fields is True:
             m2m_fields = related_fields
-        elif m2m_fields == False:
+        elif m2m_fields is False:
             m2m_fields = []
         for rel in m2m_fields:
             try:
@@ -195,9 +205,11 @@ class Command(BaseCommand):
         key = ".".join([obj._meta.app_label, obj._meta.module_name])
         all_field_names = obj._meta.get_all_field_names()
         fk_fields = MODEL_SETTINGS.get(key, {}).get('fk_fields', all_field_names)
-        if fk_fields == True:
+        # fk_fields could be True for all, False for none, or an iterable for
+        # some of the m2m_fields
+        if fk_fields is True:
             fk_fields = all_field_names
-        elif fk_fields == False:
+        elif fk_fields is False:
             fk_fields = []
         for field in obj._meta.fields:
             if isinstance(field, ForeignKey) and field.name in fk_fields:
@@ -219,9 +231,9 @@ class Command(BaseCommand):
         key = ".".join([obj._meta.app_label, obj._meta.module_name])
         all_field_names = [x.name for x in obj._meta.virtual_fields]
         gfk_fields = MODEL_SETTINGS.get(key, {}).get('gfk_fields', all_field_names)
-        if gfk_fields == True:
+        if gfk_fields is True:
             gfk_fields = all_field_names
-        elif gfk_fields == False:
+        elif gfk_fields is False:
             gfk_fields = []
         for field in obj._meta.virtual_fields:
             if field.name in gfk_fields:
@@ -348,23 +360,23 @@ class Command(BaseCommand):
             except AttributeError:
                 pass
             if debug:
-                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 pprint.pprint("Which models cause which others to be included", stream=self.stderr)
                 pprint.pprint("----------------------------------------------", stream=self.stderr)
-                pprint.pprint(dict(self.generates), stream=self.stdout)
-                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint(dict(self.generates), stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 pprint.pprint("Dependencies", stream=self.stderr)
                 pprint.pprint("----------------------------------------------", stream=self.stderr)
-                for model, fields in self.relationships.items():
+                for model, fields in sorted(self.relationships.items()):
                     pprint.pprint(model, stream=self.stderr)
-                    for field, items in fields.items():
+                    for field, items in sorted(fields.items()):
                         pprint.pprint("     %s" % field, stream=self.stderr)
                         for item in items:
                             pprint.pprint("         %s" % item, stream=self.stderr)
-                pprint.pprint("\n----------------------------------------------", stream=self.stderr)
+                pprint.pprint("----------------------------------------------", stream=self.stderr)
                 pprint.pprint("Serialization order", stream=self.stderr)
                 pprint.pprint("----------------------------------------------", stream=self.stderr)
-                pprint.pprint(list(serialization_order), stream=self.stdout)
+                pprint.pprint(list(serialization_order), stream=self.stderr)
                 return
             if model_diagram_file:
                 make_dot(self.relationships, model_diagram_file)
@@ -375,12 +387,12 @@ class Command(BaseCommand):
                 pprint.pprint(to_serialize, stream=self.stderr)
             fields, excluded = get_fields()
             SerializerClass.serialize(
-                      to_serialize,
-                      indent=indent,
-                      use_natural_keys=use_natural_keys,
-                      stream=self.stdout,
-                      fields=fields,
-                      exclude_fields=excluded)
+                to_serialize,
+                indent=indent,
+                use_natural_keys=use_natural_keys,
+                stream=self.stdout,
+                fields=fields,
+                exclude_fields=excluded)
         except Exception as e:
             if show_traceback:
                 raise
