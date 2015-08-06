@@ -37,18 +37,22 @@ def get_apps_and_models(appmodel_list):
     if appmodel_list is None:
         appmodel_list = []
     for item in appmodel_list:
-        if '.' in item:
-            app_label, model_name = item.split('.', 1)
-            model_obj = get_model(app_label, model_name)
-            if not model_obj:
-                raise Exception('Unknown model specified: %s' % item)
-            modelset.add(model_obj)
-        else:
-            try:
-                app_obj = get_app(item)
-                appset.add(app_obj)
-            except ImproperlyConfigured:
-                raise Exception('Unknown app specified: %s' % item)
+        try:
+            if '.' in item:
+                app_label, model_name = item.split('.', 1)
+                model_obj = get_model(app_label, model_name)
+                if not model_obj:
+                    raise Exception('Unknown model specified: %s' % item)
+                modelset.add(model_obj)
+            else:
+                try:
+                    app_obj = get_app(item)
+                    appset.add(app_obj)
+                except ImproperlyConfigured:
+                    raise Exception('Unknown app specified: %s' % item)
+        except Exception as e:
+            print e
+            continue
     return appset, modelset
 
 

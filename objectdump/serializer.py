@@ -1,5 +1,6 @@
 from django.utils import six
 from collections import defaultdict
+from django.contrib.contenttypes.fields import GenericRelation
 
 
 class PerObjectSerializer(object):
@@ -38,10 +39,12 @@ class PerObjectSerializer(object):
         if self.use_gfks:
             gfks = concrete_obj._meta.virtual_fields
             for gfk in gfks:
+                if isinstance(gfk, GenericRelation):
+                    continue
                 try:
                     selected_fields.remove(gfk.fk_field)
                     selected_fields.remove(gfk.ct_field)
-                except ValueError:
+                except (AttributeError, ValueError, ):
                     pass
                 selected_fields.add(gfk.name)
         if key in excluded_fields:
@@ -76,6 +79,10 @@ class PerObjectSerializer(object):
         self.first = True
         for obj in queryset:
             self.selected_fields = self.get_selected_fields(obj, included_fields, excluded_fields)
+            try:
+                obj._get_pk_val()
+            except:
+                continue
             self.start_object(obj)
             # Use the concrete parent class' _meta instead of the object's _meta
             # This is to avoid local_fields problems for proxy models. Refs #17717.

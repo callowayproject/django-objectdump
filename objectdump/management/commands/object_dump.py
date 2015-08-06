@@ -143,7 +143,7 @@ class Command(BaseCommand):
         for rel in m2m_fields:
             try:
                 related_objs = obj.__getattribute__(rel)
-                #handle OneToOneField case for related object
+                # handle OneToOneField case for related object
                 if isinstance(related_objs, models.Model):
                     related_objs = [related_objs]
                 else:  # everything else uses a related manager
@@ -213,16 +213,19 @@ class Command(BaseCommand):
             fk_fields = []
         for field in obj._meta.fields:
             if isinstance(field, ForeignKey) and field.name in fk_fields:
-                fk_obj = obj.__getattribute__(field.name)
-                if fk_obj and obj_filter is not None and not obj_filter.skip(fk_obj):
-                    fk_key = get_key(fk_obj, include_pk=self.use_obj_key)
-                    self.depends_on[obj].add(fk_obj)
-                    self.relationships[obj_key][field.name].add(fk_key)
-                    self.generates[obj_key].add(fk_key)
-                    if self.verbose:
-                        pprint.pprint("%s.%s -> %s" % (obj_key, field.name, fk_key),
-                                      stream=self.stderr)
-                    output.append(fk_obj)
+                try:
+                    fk_obj = obj.__getattribute__(field.name)
+                    if fk_obj and obj_filter is not None and not obj_filter.skip(fk_obj):
+                        fk_key = get_key(fk_obj, include_pk=self.use_obj_key)
+                        self.depends_on[obj].add(fk_obj)
+                        self.relationships[obj_key][field.name].add(fk_key)
+                        self.generates[obj_key].add(fk_key)
+                        if self.verbose:
+                            pprint.pprint("%s.%s -> %s" % (obj_key, field.name, fk_key),
+                                          stream=self.stderr)
+                        output.append(fk_obj)
+                except TypeError as e:
+                    print e, obj, field.name
         return output
 
     def process_genericforeignkeys(self, obj, obj_filter=None):
@@ -237,7 +240,7 @@ class Command(BaseCommand):
             gfk_fields = []
         for field in obj._meta.virtual_fields:
             if field.name in gfk_fields:
-                gfk_obj = obj.__getattribute__(field.name)
+                gfk_obj = obj.__getattribute__(field.name).model
                 if gfk_obj and obj_filter is not None and not obj_filter.skip(gfk_obj):
                     gfk_key = get_key(gfk_obj, include_pk=self.use_obj_key)
                     self.depends_on[obj].add(gfk_obj)
@@ -318,7 +321,7 @@ class Command(BaseCommand):
         model_diagram_file = options.get("modeldiagram")
         object_diagram_file = options.get("objdiagram")
 
-        SerializerClass = get_serializer(format)()
+        SerializerClass = get_serializer(format)()  # NOQA
         self.use_gfks = hasattr(SerializerClass, 'handle_gfk_field')
         if model_diagram_file and object_diagram_file:
             raise CommandError("You can't generate a model diagram and an object diagram at the same time.")
