@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
+try:
+    from django.apps import apps
+
+    def get_model(app_label, model_name):
+        return apps.get_model(app_label, model_name)
+
+    def get_app(app_label):
+        return apps.get_app_config(app_label).models_module
+except ImportError:
+    from django.db.models import get_model, get_app
+
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import get_app, get_model
+
 from .settings import MODEL_SETTINGS
 
 
@@ -65,28 +76,37 @@ class ObjectFilter(object):
             self.primary_model = get_model(*primary_model.split("."))
         else:
             self.primary_model = primary_model
+
         if self.primary_model is None:
             raise Exception("Unknown primary model: %s" % primary_model)
+
         if exclude_list is None:
             exclude_list = []
+
         for model, attrs in MODEL_SETTINGS.items():
             if attrs.get('ignore', False):
                 exclude_list.append(model)
-        self.excluded_apps, self.excluded_models = get_apps_and_models(exclude_list)
-        self.included_apps, self.included_models = get_apps_and_models(include_list)
+
+        self.excluded_apps, self.excluded_models = get_apps_and_models(
+            exclude_list)
+        self.included_apps, self.included_models = get_apps_and_models(
+            include_list)
 
     def skip(self, obj):
         # Skip ignored models.
         if obj.__class__ in self.excluded_models:
             return True
+
         if get_app(obj._meta.app_label) in self.excluded_apps:
             return True
 
         # Skip models not specifically being included.
-        if (self.included_apps or self.included_models) and \
-           not isinstance(obj, self.primary_model):
+        if ((self.included_apps or self.included_models) and
+            not isinstance(obj, self.primary_model)):
             if obj.__class__ not in self.included_models:
                 return True
+
             if get_app(obj._meta.app_label) not in self.included_apps:
                 return True
+
         return False
