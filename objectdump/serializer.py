@@ -18,7 +18,7 @@ class PerObjectSerializer(object):
 
         Then remove anything listed in ``excluded_fields``
         """
-        key = "%s.%s" % (obj._meta.app_label, obj._meta.module_name)
+        key = "%s.%s" % (obj._meta.app_label, obj._meta.model_name)
         if key in self.cached_selected_fields:
             return self.cached_selected_fields[key]
         if key not in included_fields and key not in excluded_fields and not self.use_gfks:
@@ -69,6 +69,8 @@ class PerObjectSerializer(object):
         self.options = options
         self.stream = options.pop("stream", six.StringIO())
         self.use_natural_keys = options.pop("use_natural_keys", False)
+        self.use_natural_foreign_keys = options.pop('use_natural_foreign_keys', False)
+        self.use_natural_primary_keys = options.pop('use_natural_primary_keys', False)
         self.use_gfks = hasattr(self, 'handle_gfk_field') and self.use_natural_keys
 
         included_fields = options.pop("fields", {})

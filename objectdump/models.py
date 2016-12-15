@@ -16,7 +16,7 @@ from .settings import MODEL_SETTINGS
 
 
 def get_key(obj, as_tuple=False, include_pk=True):
-    key = [obj._meta.app_label, obj._meta.module_name, ]
+    key = [obj._meta.app_label, obj._meta.model_name, ]
     if include_pk:
         key.append(obj.pk)
 

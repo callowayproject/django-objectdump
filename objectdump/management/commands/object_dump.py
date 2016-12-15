@@ -100,7 +100,7 @@ class Command(BaseCommand):
     )
 
     def process_additional_relations(self, obj, limit=None):
-        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        key = ".".join([obj._meta.app_label, obj._meta.model_name])
         addl_relations = MODEL_SETTINGS.get(key, {}).get('addl_relations', [])
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
@@ -132,7 +132,7 @@ class Command(BaseCommand):
         related_fields = get_reverse_relations(obj)
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
-        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        key = ".".join([obj._meta.app_label, obj._meta.model_name])
         m2m_fields = MODEL_SETTINGS.get(key, {}).get('reverse_relations', related_fields)
         # m2m_fields could be True for all, False for none, or an iterable for
         # some of the m2m_fields
@@ -167,7 +167,7 @@ class Command(BaseCommand):
     def process_many2many(self, obj, limit=None, obj_filter=None):
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
-        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        key = ".".join([obj._meta.app_label, obj._meta.model_name])
         related_fields = get_many_to_many(obj)
         m2m_fields = MODEL_SETTINGS.get(key, {}).get('m2m_fields', related_fields)
 
@@ -202,7 +202,7 @@ class Command(BaseCommand):
     def process_foreignkeys(self, obj, obj_filter=None):
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
-        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        key = ".".join([obj._meta.app_label, obj._meta.model_name])
         all_field_names = obj._meta.get_all_field_names()
         fk_fields = MODEL_SETTINGS.get(key, {}).get('fk_fields', all_field_names)
         # fk_fields could be True for all, False for none, or an iterable for
@@ -231,7 +231,7 @@ class Command(BaseCommand):
     def process_genericforeignkeys(self, obj, obj_filter=None):
         output = []
         obj_key = get_key(obj, include_pk=self.use_obj_key)
-        key = ".".join([obj._meta.app_label, obj._meta.module_name])
+        key = ".".join([obj._meta.app_label, obj._meta.model_name])
         all_field_names = [x.name for x in obj._meta.virtual_fields]
         gfk_fields = MODEL_SETTINGS.get(key, {}).get('gfk_fields', all_field_names)
         if gfk_fields is True:
