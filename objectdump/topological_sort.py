@@ -11,7 +11,10 @@ def toposort(data):
     for k, v in data.items():
         v.discard(k)
     # Find all items that don't depend on anything.
-    extra_items_in_deps = reduce(set.union, data.itervalues()) - set(data.iterkeys())
+    try:
+        extra_items_in_deps = reduce(set.union, data.itervalues()) - set(data.iterkeys())
+    except Exception:
+        extra_items_in_deps = []
     # Add empty dependences where needed
     data.update(dict([(item, set()) for item in extra_items_in_deps]))
     while True:
