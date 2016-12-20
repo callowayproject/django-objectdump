@@ -32,7 +32,7 @@ setup(
     author_email='coreyoordt@gmail.com',
     description=DESC,
     long_description=get_readme(),
-    packages=find_packages(),
+    packages=find_packages(exclude=['example*', ]),
     include_package_data=True,
     install_requires=read_file('requirements.txt'),
     classifiers=[
