@@ -5,7 +5,8 @@ from django.db import DEFAULT_DB_ALIAS
 
 from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import ForeignKey, get_model
+from django.db.models import ForeignKey
+from django.apps import apps
 from django.db import models
 from django.template import Variable
 
@@ -225,7 +226,7 @@ class Command(BaseCommand):
                                           stream=self.stderr)
                         output.append(fk_obj)
                 except TypeError as e:
-                    print e, obj, field.name
+                    print "Error processing FK:", e, obj, field.name
         return output
 
     def process_genericforeignkeys(self, obj, obj_filter=None):
@@ -240,16 +241,19 @@ class Command(BaseCommand):
             gfk_fields = []
         for field in obj._meta.virtual_fields:
             if field.name in gfk_fields:
-                gfk_obj = obj.__getattribute__(field.name).model
-                if gfk_obj and obj_filter is not None and not obj_filter.skip(gfk_obj):
-                    gfk_key = get_key(gfk_obj, include_pk=self.use_obj_key)
-                    self.depends_on[obj].add(gfk_obj)
-                    self.relationships[obj_key][field.name].add(gfk_key)
-                    self.generates[obj_key].add(gfk_key)
-                    if self.verbose:
-                        pprint.pprint("%s.%s -> %s" % (obj_key, field.name, gfk_key),
-                                      stream=self.stderr)
-                    output.append(gfk_obj)
+                try:
+                    gfk_obj = obj.__getattribute__(field.name).model
+                    if gfk_obj and obj_filter is not None and not obj_filter.skip(gfk_obj):
+                        gfk_key = get_key(gfk_obj, include_pk=self.use_obj_key)
+                        self.depends_on[obj].add(gfk_obj)
+                        self.relationships[obj_key][field.name].add(gfk_key)
+                        self.generates[obj_key].add(gfk_key)
+                        if self.verbose:
+                            pprint.pprint("%s.%s -> %s" % (obj_key, field.name, gfk_key),
+                                          stream=self.stderr)
+                        output.append(gfk_obj)
+                except TypeError:
+                    print "Error getting GFK %s" % field.name
         return output
 
     def process_object(self, obj, obj_filter=None):
@@ -340,7 +344,7 @@ class Command(BaseCommand):
 
         main_model = args[0]
         app_label, model_name = main_model.split('.')
-        primary_model = get_model(app_label, model_name)
+        primary_model = apps.get_model(app_label, model_name)
         obj_filter = ObjectFilter(primary_model, excludes, includes)
 
         ids = [id_cast(i) for i in args[1:]]
